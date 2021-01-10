@@ -3,6 +3,7 @@ package app
 import (
 	DB "category/schema"
 	"database/sql"
+	"fmt"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -24,11 +25,13 @@ func (app *App) InitializeAndRun(user, password, dbname, host string, port int) 
 	})
 	app.DB = conn.MakeConnection()
 	app.Router = mux.NewRouter()
+	//LogRequestHandler(app.Router)
 	//Register category methods
 	//All methods of API are registered
 	app.RegisterCategoryMethods()
 	app.RegisterProductMethods()
 	app.RegisterVariantsMethods()
+	app.Router.MethodNotAllowedHandler = MethodNotAllowedHandler()
 
 	err := http.ListenAndServe(":8080", app.Router)
 	if err != nil {
@@ -37,4 +40,10 @@ func (app *App) InitializeAndRun(user, password, dbname, host string, port int) 
 
 	log.Println("server started at localhost:8080")
 
+}
+
+func MethodNotAllowedHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Method not allowed")
+	})
 }

@@ -17,10 +17,11 @@ const (
 )
 
 func (app *App) RegisterCategoryMethods() {
-	app.Router.HandleFunc("/category", app.createCategory).Methods("POST")
 	app.Router.HandleFunc("/category/{id}", app.getCategory).Methods("GET")
 	app.Router.HandleFunc("/category/{id}", app.deleteCategory).Methods("DELETE")
 	app.Router.HandleFunc("/category/{id}", app.updateCategory).Methods("PUT")
+	app.Router.HandleFunc("/category",      app.createCategory).Methods("POST")
+
 }
 
 func (app *App) createCategory(resp http.ResponseWriter, req *http.Request) {

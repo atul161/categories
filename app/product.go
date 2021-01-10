@@ -101,6 +101,7 @@ func (app *App) getProduct(res http.ResponseWriter, req *http.Request) {
 			if err != nil {
 				return
 			}
+			return
 		}
 		res, err = NewMessage(err.Error(), http.StatusPreconditionFailed, res)
 		if err != nil {

@@ -6,7 +6,7 @@ import (
 )
 
 type Message struct {
-	message string `json:"message"`
+	Message string `json:"message"`
 	Code    int    `json:"code"`
 }
 
@@ -14,7 +14,7 @@ func NewMessage(msg string, code int, resp http.ResponseWriter) (http.ResponseWr
 	resp.Header().Set("Content-Type", "application/json")
 	resp.Header().Set("Access-Control-Allow-Origin", "*")
 	err := json.NewEncoder(resp).Encode(Message{
-		message: msg,
+		Message: msg,
 		Code:    code,
 	})
 	if err != nil {
@@ -26,6 +26,7 @@ func NewMessage(msg string, code int, resp http.ResponseWriter) (http.ResponseWr
 func BindResponse(js interface{}, resp http.ResponseWriter, status int) (http.ResponseWriter, error) {
 	resp.Header().Set("Content-Type", "application/json")
 	resp.Header().Set("Access-Control-Allow-Origin", "*")
+	resp.Header()
 	resp.WriteHeader(status)
 	if js != nil {
 		err := json.NewEncoder(resp).Encode(js)
