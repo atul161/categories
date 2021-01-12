@@ -41,20 +41,18 @@ type VariantMap struct {
 
 //New Store will create the table schema for the given sql DB instance
 //All the store will be create : ie: {companyName_tableName_version}
-func NewStore(store Store) PGStore {
+func NewStore(store Store) (PGStore, error) {
 	str := Store{DB: store.DB}
 	if err := str.createCategoryPGStore(); err != nil {
-		return nil
+		return nil, err
 	}
-
 	if err := str.createProductPGStore(); err != nil {
-		return nil
+		return nil, err
 	}
-
 	if err := str.createVariantPGStore(); err != nil {
-		return nil
+		return nil, err
 	}
-	return &str
+	return &str, nil
 }
 
 func (store *Store) createCategoryPGStore() error {

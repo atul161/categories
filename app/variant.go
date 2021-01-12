@@ -15,16 +15,20 @@ const (
 	Var = "var"
 )
 
-func (app *App) RegisterVariantsMethods() {
+func (app *App) RegisterVariantsMethods() error {
+	//schema will create the schema if not exists
+	_, err := schema.NewStore(schema.Store{DB: app.DB})
+	if err != nil {
+		return err
+	}
 	app.Router.HandleFunc("/category/product/variant", app.createVariant).Methods("POST")
 	app.Router.HandleFunc("/category/product/variant/{id}", app.getVariant).Methods("GET")
 	app.Router.HandleFunc("/category/product/variant/{id}", app.deleteVariant).Methods("DELETE")
 	app.Router.HandleFunc("/category/product/variant/{id}", app.updateVariant).Methods("PUT")
+	return nil
 }
 
 func (app *App) createVariant(resp http.ResponseWriter, req *http.Request) {
-	//schema will create the schema if not exists
-	schema.NewStore(schema.Store{DB: app.DB})
 	var variant *vr.Variant
 	//Decoding the request
 	err := json.NewDecoder(req.Body).Decode(&variant)
@@ -91,7 +95,6 @@ func (app *App) getVariant(res http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
-
 	variant, err := vr.GetVariant(id, app.DB)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -120,7 +123,6 @@ func (app *App) getVariant(res http.ResponseWriter, req *http.Request) {
 }
 
 func (app *App) deleteVariant(res http.ResponseWriter, req *http.Request) {
-	schema.NewStore(schema.Store{DB: app.DB})
 	var variant *vr.Variant
 	//Decoding the request
 	err := json.NewDecoder(req.Body).Decode(&variant)

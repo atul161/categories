@@ -16,21 +16,34 @@ const (
 	Limit      = 10
 )
 
-func (app *App) RegisterCategoryMethods() {
+func (app *App) RegisterCategoryMethods() error {
+	_, err := schema.NewStore(schema.Store{DB: app.DB})
+	if err != nil {
+		return err
+	}
 	app.Router.HandleFunc("/category/{id}", app.getCategory).Methods("GET")
 	app.Router.HandleFunc("/category/{id}", app.deleteCategory).Methods("DELETE")
 	app.Router.HandleFunc("/category/{id}", app.updateCategory).Methods("PUT")
-	app.Router.HandleFunc("/category",      app.createCategory).Methods("POST")
+	app.Router.HandleFunc("/category", app.createCategory).Methods("POST")
+	return nil
 
 }
 
 func (app *App) createCategory(resp http.ResponseWriter, req *http.Request) {
 	log.Println("/category")
 	//schema will create the schema if not exists
-	schema.NewStore(schema.Store{DB: app.DB})
+	_, err := schema.NewStore(schema.Store{DB: app.DB})
+	if err != nil {
+		resp, err = NewMessage(err.Error(), http.StatusInternalServerError, resp)
+		if err != nil {
+			return
+		}
+		return
+	}
+
 	var cat *category.CategoryResp
 	//Decoding the request
-	err := json.NewDecoder(req.Body).Decode(&cat)
+	err = json.NewDecoder(req.Body).Decode(&cat)
 	if err != nil {
 		resp, err = NewMessage(err.Error(), http.StatusInternalServerError, resp)
 		if err != nil {
@@ -103,6 +116,15 @@ func (app *App) getCategory(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	_, err = schema.NewStore(schema.Store{DB: app.DB})
+	if err != nil {
+		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
+		if err != nil {
+			return
+		}
+		return
+	}
+
 	err, categories := category.GetCategory(app.DB, id, 0, nil, true)
 	if err != nil {
 		res, err = NewMessage(err.Error(), http.StatusPreconditionFailed, res)
@@ -134,6 +156,15 @@ func (app *App) getCategory(res http.ResponseWriter, req *http.Request) {
 
 func (app *App) updateCategory(res http.ResponseWriter, req *http.Request) {
 	log.Println("/category")
+	_, err := schema.NewStore(schema.Store{DB: app.DB})
+	if err != nil {
+		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
+		if err != nil {
+			return
+		}
+		return
+	}
+
 	id := mux.Vars(req)["id"]
 	reqBody, err := ioutil.ReadAll(req.Body)
 	if err != nil {
@@ -169,6 +200,15 @@ func (app *App) deleteCategory(res http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	id := params["id"]
 	var err error = nil
+	_, err = schema.NewStore(schema.Store{DB: app.DB})
+	if err != nil {
+		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
+		if err != nil {
+			return
+		}
+		return
+	}
+
 	if id == "" {
 		res, err = NewMessage("id required", http.StatusPreconditionFailed, res)
 		if err != nil {

@@ -16,16 +16,19 @@ const (
 	Products = "pro"
 )
 
-func (app *App) RegisterProductMethods() {
+func (app *App) RegisterProductMethods() error {
+	_, err := schema.NewStore(schema.Store{DB: app.DB})
+	if err != nil {
+		return err
+	}
 	app.Router.HandleFunc("/category/product", app.createProduct).Methods("POST")
 	app.Router.HandleFunc("/category/product/{id}", app.getProduct).Methods("GET")
 	app.Router.HandleFunc("/category/product/{id}", app.deleteProduct).Methods("DELETE")
 	app.Router.HandleFunc("/category/product/{id}", app.updateProduct).Methods("PUT")
+	return nil
 }
 
 func (app *App) createProduct(resp http.ResponseWriter, req *http.Request) {
-	//schema will create the schema if not exists
-	schema.NewStore(schema.Store{DB: app.DB})
 	var product *products.ProductResp
 	//Decoding the request
 	err := json.NewDecoder(req.Body).Decode(&product)
@@ -110,7 +113,6 @@ func (app *App) getProduct(res http.ResponseWriter, req *http.Request) {
 
 		return
 	}
-
 	res, err = BindResponse(prod, res, http.StatusOK)
 	if err != nil {
 		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)

@@ -48,7 +48,6 @@ func TestUniqueness(t *testing.T) {
 		if set[id] {
 			t.Errorf("generating repeated strings")
 		}
-
 		set[id] = true
 	}
 }

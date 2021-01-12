@@ -48,24 +48,25 @@ func MapWithId(cat *category.CategoryResp, layer int) error {
 
 	return nil
 }
+
 type Logger struct {
-	Uri string `json:"uri"`
+	Uri    string `json:"uri"`
 	Method string `json:"method"`
-	Body string `json:"body"`
+	Body   string `json:"body"`
 }
 
 func LogRequestHandler(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		// call the original http.Handler we're wrapping
 		h.ServeHTTP(w, r)
-		b , _ := ioutil.ReadAll(r.Body)
+		b, _ := ioutil.ReadAll(r.Body)
 		// gather information about request and log it
 		l := Logger{
 			Uri:    r.URL.String(),
 			Method: r.Method,
 			Body:   string(b),
 		}
-	 log.Println(l)
+		log.Println(l)
 
 	}
 

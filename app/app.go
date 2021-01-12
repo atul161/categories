@@ -15,7 +15,7 @@ type App struct {
 }
 
 //Create a new connection and returns thee database instance
-func (app *App) InitializeAndRun(user, password, dbname, host string, port int) {
+func (app *App) InitializeAndRun(user, password, dbname, host string, port int) error {
 	conn := DB.NewConnection(&DB.Info{
 		Host:     host,
 		Port:     port,
@@ -28,9 +28,16 @@ func (app *App) InitializeAndRun(user, password, dbname, host string, port int) 
 	//LogRequestHandler(app.Router)
 	//Register category methods
 	//All methods of API are registered
-	app.RegisterCategoryMethods()
-	app.RegisterProductMethods()
-	app.RegisterVariantsMethods()
+	if err := app.RegisterCategoryMethods(); err != nil {
+		return err
+	}
+	if err := app.RegisterProductMethods(); err != nil {
+
+	}
+	if err := app.RegisterVariantsMethods(); err != nil {
+		return err
+	}
+
 	app.Router.MethodNotAllowedHandler = MethodNotAllowedHandler()
 
 	err := http.ListenAndServe(":8080", app.Router)
@@ -39,7 +46,7 @@ func (app *App) InitializeAndRun(user, password, dbname, host string, port int) 
 	}
 
 	log.Println("server started at localhost:8080")
-
+	return nil
 }
 
 func MethodNotAllowedHandler() http.Handler {
