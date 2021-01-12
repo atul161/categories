@@ -1,15 +1,31 @@
 package main
 
 import (
-	app "category/app"
+	"category/app"
 	"log"
+	"os"
+	"strconv"
 )
 
 func main() {
+	var (
+		user string = os.Getenv("user")
+		password = os.Getenv("password")
+		dbname = os.Getenv("dbname")
+		host   = os.Getenv("host")
+		port =  os.Getenv("port")
+	)
+	p , err := strconv.Atoi(port)
+	if err != nil {
+		panic(err)
+	}
+
 	a := app.App{}
-	err := a.InitializeAndRun("postgres", "postgres", "shopalyst", "localhost", 5432)
+	err = a.InitializeAndRun(user, password, dbname, host, p)
 	if err != nil {
 		log.Println(err.Error())
 	}
 
 }
+
+

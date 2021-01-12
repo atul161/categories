@@ -7,6 +7,7 @@ import (
 )
 
 func TestNewStore(t *testing.T) {
+
 	a := app.App{}
 	a.InitializeAndRun("postgres", "postgres", "shopalyst", "localhost", 5432)
 	//New store will create the schema and table
