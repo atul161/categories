@@ -32,7 +32,7 @@ func (app *App) InitializeAndRun(user, password, dbname, host string, port int) 
 		return err
 	}
 	if err := app.RegisterProductMethods(); err != nil {
-
+		return err
 	}
 	if err := app.RegisterVariantsMethods(); err != nil {
 		return err

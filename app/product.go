@@ -83,6 +83,15 @@ func (app *App) createProduct(resp http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
+
+	resp, err = BindResponse(product, resp, http.StatusOK)
+	if err != nil {
+		resp, err = NewMessage(err.Error(), http.StatusInternalServerError, resp)
+		if err != nil {
+			return
+		}
+		return
+	}
 }
 
 func (app *App) getProduct(res http.ResponseWriter, req *http.Request) {
@@ -90,14 +99,14 @@ func (app *App) getProduct(res http.ResponseWriter, req *http.Request) {
 	id := params["id"]
 	var err error = nil
 	if id == "" {
-		res, err = NewMessage("id required for getting hierarchy information", http.StatusPreconditionFailed, res)
+		res, err = NewMessage("id required for getting product", http.StatusPreconditionFailed, res)
 		if err != nil {
 			return
 		}
 		return
 	}
 
-	prod, err := products.GetProductAndItsVariant(id, app.DB)
+	prod, err := products.GetProducts(id, app.DB, 0)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			res, err = NewMessage("Product not found", http.StatusPreconditionFailed, res)
@@ -111,6 +120,14 @@ func (app *App) getProduct(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+		return
+	}
+
+	if prod.Id == "" {
+		res, err = NewMessage("product not found", http.StatusNotFound, res)
+		if err != nil {
+			return
+		}
 		return
 	}
 	res, err = BindResponse(prod, res, http.StatusOK)
@@ -165,6 +182,24 @@ func (app *App) updateProduct(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	product.Id = id
+	//Before update we need to check whether id exist or not
+	p, err := products.GetProducts(id, app.DB, 0)
+	if err != nil {
+		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
+		if err != nil {
+			return
+		}
+		return
+	}
+
+	if p.Id == "" {
+		res, err = NewMessage("product not found", http.StatusInternalServerError, res)
+		if err != nil {
+			return
+		}
+		return
+	}
+
 	err = products.UpdateProduct(id, app.DB, &product)
 	if err != nil {
 		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
@@ -174,7 +209,7 @@ func (app *App) updateProduct(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	res, err = BindResponse(nil, res, http.StatusOK)
+	res, err = BindResponse(product, res, http.StatusOK)
 	if err != nil {
 		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
 		if err != nil {

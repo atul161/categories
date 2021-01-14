@@ -5,7 +5,7 @@ import (
 )
 
 //All method in the interface will be the internal method.
-//NewStore method which is exposed will make schema.
+// NewStore method which is exposed will make schema.
 //If the same DB instance is passed it will just check table exist or not
 type PGStore interface {
 	createCategoryPGStore() error
@@ -15,28 +15,6 @@ type PGStore interface {
 
 type Store struct {
 	DB *sql.DB
-}
-
-type CategoryMap struct {
-	Id               string `json:"id,omitempty"`
-	Name             string `json:"name,omitempty"`
-	ParentCategoryId string `json:"parent_category_id,omitempty"`
-}
-
-type ProductMap struct {
-	Id          string `json:"id,omitempty"`
-	Name        string `json:"name,omitempty"`
-	CategoryId  string `json:"category_id,omitempty"`
-	Description string `json:"description,omitempty"`
-	ImageUrl    string `json:"image_url,omitempty"`
-}
-
-type VariantMap struct {
-	Id            string  `json:"id,omitempty"`
-	Name          string  `json:"name,omitempty"`
-	DiscountPrice float64 `json:"discount_price,omitempty"`
-	Size          string  `json:"size,omitempty"`
-	Colour        string  `json:"colour,omitempty"`
 }
 
 //New Store will create the table schema for the given sql DB instance
@@ -69,7 +47,7 @@ func (store *Store) createCategoryPGStore() error {
 //Create the schema of product if not exist
 func (store *Store) createProductPGStore() error {
 	const queries = `CREATE SCHEMA IF NOT EXISTS shopalyst_product_v1;
-    CREATE TABLE IF NOT EXISTS shopalyst_product_v1.product(id text DEFAULT ''::text , category_id text DEFAULT ''::text, name text DEFAULT ''::text , description text DEFAULT ''::text , image_url  text DEFAULT ''::text ,variant_ids text DEFAULT '[]'::text ,PRIMARY KEY (id) );
+    CREATE TABLE IF NOT EXISTS shopalyst_product_v1.product(id text DEFAULT ''::text , category_id text DEFAULT ''::text, name text DEFAULT ''::text , description text DEFAULT ''::text , image_url  text DEFAULT ''::text ,PRIMARY KEY (id) );
   `
 	_, err := store.DB.Exec(queries)
 	if err != nil {

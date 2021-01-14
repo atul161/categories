@@ -9,13 +9,13 @@ import (
 
 func main() {
 	var (
-		user string = os.Getenv("user")
-		password = os.Getenv("password")
-		dbname = os.Getenv("dbname")
-		host   = os.Getenv("host")
-		port =  os.Getenv("port")
+		user     string = os.Getenv("user")
+		password        = os.Getenv("password")
+		dbname          = os.Getenv("dbname")
+		host            = os.Getenv("host")
+		port            = os.Getenv("port")
 	)
-	p , err := strconv.Atoi(port)
+	p, err := strconv.Atoi(port)
 	if err != nil {
 		panic(err)
 	}
@@ -27,5 +27,3 @@ func main() {
 	}
 
 }
-
-

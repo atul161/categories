@@ -2,6 +2,7 @@ package app
 
 import (
 	vr "category/app/variant"
+	"category/helper"
 	schema "category/schema"
 	"database/sql"
 	"encoding/json"
@@ -55,7 +56,9 @@ func (app *App) createVariant(resp http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
-	//Check if category_id exist or not
+
+	variant.Id = helper.New(Var)
+	//Check if product_id exist or not
 	var id string
 	sqlStatement := `SELECT shopalyst_product_v1.product.id FROM shopalyst_product_v1.product WHERE id = $1`
 	row := app.DB.QueryRow(sqlStatement, variant.ProductId)
@@ -77,6 +80,15 @@ func (app *App) createVariant(resp http.ResponseWriter, req *http.Request) {
 	//Now create product
 	if err := vr.InsertVariant(variant, app.DB); err != nil {
 		resp, err = NewMessage(err.Error(), http.StatusPreconditionFailed, resp)
+		if err != nil {
+			return
+		}
+		return
+	}
+
+	resp, err = BindResponse(variant, resp, http.StatusOK)
+	if err != nil {
+		resp, err = NewMessage(err.Error(), http.StatusInternalServerError, resp)
 		if err != nil {
 			return
 		}
@@ -123,17 +135,17 @@ func (app *App) getVariant(res http.ResponseWriter, req *http.Request) {
 }
 
 func (app *App) deleteVariant(res http.ResponseWriter, req *http.Request) {
-	var variant *vr.Variant
-	//Decoding the request
-	err := json.NewDecoder(req.Body).Decode(&variant)
-	if err != nil {
-		res, err = NewMessage("internal server error", http.StatusInternalServerError, res)
+	params := mux.Vars(req)
+	id := params["id"]
+	var err error = nil
+	if id == "" {
+		res, err = NewMessage("id required", http.StatusPreconditionFailed, res)
 		if err != nil {
 			return
 		}
 		return
 	}
-	if err := vr.DeleteVariant(variant.Id, app.DB); err != nil {
+	if err := vr.DeleteVariant(id, app.DB); err != nil {
 		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
 		if err != nil {
 			return
@@ -163,6 +175,27 @@ func (app *App) updateVariant(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	variant.Id = id
+
+	v, err := vr.GetVariant(id, app.DB)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			res, err = NewMessage("variant not found", http.StatusPreconditionFailed, res)
+			if err != nil {
+				return
+			}
+			return
+		}
+		return
+	}
+
+	if v.Id == "" {
+		res, err = NewMessage("variant not found", http.StatusNotFound, res)
+		if err != nil {
+			return
+		}
+		return
+	}
+
 	err = vr.UpdateVariant(id, app.DB, &variant)
 	if err != nil {
 		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
@@ -172,7 +205,7 @@ func (app *App) updateVariant(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	res, err = BindResponse(nil, res, http.StatusOK)
+	res, err = BindResponse(variant, res, http.StatusOK)
 	if err != nil {
 		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
 		if err != nil {

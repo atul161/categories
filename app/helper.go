@@ -9,10 +9,44 @@ import (
 	"net/http"
 )
 
-//Putting the Id inside the Nested Child
+//Putting the Unique Id inside the Nested Child
 /*
+MAX LAYER = 10
   c - c1 , c2 , c3 , list of p
      c1 -
+{
+    "name": "Phones",
+    "id": "ksjnfk",
+    "child_categories": [
+        {
+            "name": "Ipad",
+            "v":"24",
+            "child_categories": [
+                {
+                    "name": "34 inch ipad",
+                    "products": [
+                        {
+                            "name": "samsung s 50,
+                            "description": "Best samsung ipad with 3 star rating ",
+                            "variants": [
+                                {
+                                    "name": "s",
+                                    "size": "xl",
+                                    "discount_price":2.3,
+                                    "color":"blue"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "mini girl's Category"
+        }
+    ],
+
+}
 */
 func MapWithId(cat *category.CategoryResp, layer int) error {
 	if cat == nil {

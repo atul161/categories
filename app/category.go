@@ -16,6 +16,7 @@ const (
 	Limit      = 10
 )
 
+//Register Method will activate the mux
 func (app *App) RegisterCategoryMethods() error {
 	_, err := schema.NewStore(schema.Store{DB: app.DB})
 	if err != nil {
@@ -29,21 +30,14 @@ func (app *App) RegisterCategoryMethods() error {
 
 }
 
+//Create category will create the category
+// if there is nested child. i.e : categories in side sub categories -> products -> variants
+// It will insert categories as well as sub categories and products and its variants also
 func (app *App) createCategory(resp http.ResponseWriter, req *http.Request) {
 	log.Println("/category")
-	//schema will create the schema if not exists
-	_, err := schema.NewStore(schema.Store{DB: app.DB})
-	if err != nil {
-		resp, err = NewMessage(err.Error(), http.StatusInternalServerError, resp)
-		if err != nil {
-			return
-		}
-		return
-	}
-
 	var cat *category.CategoryResp
 	//Decoding the request
-	err = json.NewDecoder(req.Body).Decode(&cat)
+	err := json.NewDecoder(req.Body).Decode(&cat)
 	if err != nil {
 		resp, err = NewMessage(err.Error(), http.StatusInternalServerError, resp)
 		if err != nil {
@@ -104,6 +98,8 @@ func (app *App) createCategory(resp http.ResponseWriter, req *http.Request) {
 
 }
 
+//get category will get the category, products and its variants.
+//if there is any subcategories it will also give products and variant also
 func (app *App) getCategory(res http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	id := params["id"]
@@ -116,16 +112,7 @@ func (app *App) getCategory(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	_, err = schema.NewStore(schema.Store{DB: app.DB})
-	if err != nil {
-		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
-		if err != nil {
-			return
-		}
-		return
-	}
-
-	err, categories := category.GetCategory(app.DB, id, 0, nil, true)
+	err, categories := category.GetCategories(id, app.DB, 0)
 	if err != nil {
 		res, err = NewMessage(err.Error(), http.StatusPreconditionFailed, res)
 		if err != nil {
@@ -134,9 +121,8 @@ func (app *App) getCategory(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	categories, err = category.GetProductAndItsVariant(categories, app.DB)
-	if err != nil {
-		res, err = NewMessage(err.Error(), http.StatusPreconditionFailed, res)
+	if categories.Id == "" {
+		res, err = NewMessage("category not found", http.StatusNotFound, res)
 		if err != nil {
 			return
 		}
@@ -154,22 +140,20 @@ func (app *App) getCategory(res http.ResponseWriter, req *http.Request) {
 
 }
 
+//Update category to update the category node.
+// name of the category
 func (app *App) updateCategory(res http.ResponseWriter, req *http.Request) {
 	log.Println("/category")
-	_, err := schema.NewStore(schema.Store{DB: app.DB})
+	id := mux.Vars(req)["id"]
+
+	reqBody, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
+		res, err = NewMessage(err.Error(), http.StatusPreconditionFailed, res)
 		if err != nil {
 			return
 		}
-		return
 	}
 
-	id := mux.Vars(req)["id"]
-	reqBody, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		res, _ = BindResponse(nil, res, http.StatusPreconditionFailed)
-	}
 	var categories category.CategoryResp
 	if err != json.Unmarshal(reqBody, &categories) {
 		res, err = NewMessage(err.Error(), http.StatusPreconditionFailed, res)
@@ -196,6 +180,7 @@ func (app *App) updateCategory(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
+//delete category will delete the category
 func (app *App) deleteCategory(res http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	id := params["id"]

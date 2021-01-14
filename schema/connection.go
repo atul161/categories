@@ -10,6 +10,7 @@ type Connection interface {
 	MakeConnection() *sql.DB
 }
 
+//Info contains the details of new connection
 type Info struct {
 	Host     string
 	Port     int
