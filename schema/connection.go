@@ -36,11 +36,11 @@ func NewConnection(info *Info) Connection {
 // and return the instance of that connection.
 //Note: Caller must have to close the connection after the use
 func (info *Info) MakeConnection() *sql.DB {
-
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		info.Host, info.Port, info.User, info.Password, info.Dbname)
 
+	//open database
 	DB, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		panic(err)

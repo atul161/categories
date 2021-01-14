@@ -45,6 +45,7 @@ func (app *App) createCategory(resp http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
+
 	//Category nil check
 	if cat == nil {
 		resp, err = NewMessage("category must not be empty", http.StatusPreconditionFailed, resp)
@@ -53,6 +54,7 @@ func (app *App) createCategory(resp http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
+
 	// Subcategories id mapping
 	err = MapWithId(cat, 0)
 	if err != nil {
@@ -70,6 +72,7 @@ func (app *App) createCategory(resp http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	//Insert the categories
 	err = category.InsertCategories(cat, app.DB)
 	if err != nil {
 		resp, err = NewMessage(err.Error(), http.StatusPreconditionFailed, resp)
@@ -79,6 +82,7 @@ func (app *App) createCategory(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	//Insert Nested products and its variant if there is nesting exist
 	if err := category.InsertProductsAndVariant(cat, app.DB); err != nil {
 		resp, err = NewMessage(err.Error(), http.StatusPreconditionFailed, resp)
 		if err != nil {
@@ -87,6 +91,7 @@ func (app *App) createCategory(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	//Binding the response
 	resp, err = BindResponse(cat, resp, http.StatusOK)
 	if err != nil {
 		resp, err = NewMessage(err.Error(), http.StatusInternalServerError, resp)
@@ -101,6 +106,7 @@ func (app *App) createCategory(resp http.ResponseWriter, req *http.Request) {
 //get category will get the category, products and its variants.
 //if there is any subcategories it will also give products and variant also
 func (app *App) getCategory(res http.ResponseWriter, req *http.Request) {
+	//getting id from the url
 	params := mux.Vars(req)
 	id := params["id"]
 	var err error = nil
@@ -112,6 +118,7 @@ func (app *App) getCategory(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	//get all the categories , subcategories , products and its variants
 	err, categories := category.GetCategories(id, app.DB, 0)
 	if err != nil {
 		res, err = NewMessage(err.Error(), http.StatusPreconditionFailed, res)
@@ -121,6 +128,7 @@ func (app *App) getCategory(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	//if category does not exist or deleted
 	if categories.Id == "" {
 		res, err = NewMessage("category not found", http.StatusNotFound, res)
 		if err != nil {
@@ -129,6 +137,7 @@ func (app *App) getCategory(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	//Binding response
 	res, err = BindResponse(categories, res, http.StatusOK)
 	if err != nil {
 		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
@@ -144,8 +153,8 @@ func (app *App) getCategory(res http.ResponseWriter, req *http.Request) {
 // name of the category
 func (app *App) updateCategory(res http.ResponseWriter, req *http.Request) {
 	log.Println("/category")
+	//getting id
 	id := mux.Vars(req)["id"]
-
 	reqBody, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		res, err = NewMessage(err.Error(), http.StatusPreconditionFailed, res)
@@ -154,6 +163,7 @@ func (app *App) updateCategory(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	//marshal
 	var categories category.CategoryResp
 	if err != json.Unmarshal(reqBody, &categories) {
 		res, err = NewMessage(err.Error(), http.StatusPreconditionFailed, res)
@@ -162,6 +172,7 @@ func (app *App) updateCategory(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	//update the category. ie name of the category
 	c, err := category.UpdateCategory(id, categories.Name, app.DB)
 	if err != nil {
 		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
@@ -170,6 +181,8 @@ func (app *App) updateCategory(res http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
+
+	//binding the response
 	res, err = BindResponse(c, res, http.StatusOK)
 	if err != nil {
 		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
@@ -182,6 +195,7 @@ func (app *App) updateCategory(res http.ResponseWriter, req *http.Request) {
 
 //delete category will delete the category
 func (app *App) deleteCategory(res http.ResponseWriter, req *http.Request) {
+	//id getting
 	params := mux.Vars(req)
 	id := params["id"]
 	var err error = nil
@@ -193,7 +207,7 @@ func (app *App) deleteCategory(res http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
-
+	//id validation
 	if id == "" {
 		res, err = NewMessage("id required", http.StatusPreconditionFailed, res)
 		if err != nil {
@@ -201,6 +215,7 @@ func (app *App) deleteCategory(res http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
+	//delete the category and its node
 	if err := category.DeleteCategory(id, app.DB); err != nil {
 		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
 		if err != nil {
@@ -208,6 +223,7 @@ func (app *App) deleteCategory(res http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
+	//binding the response
 	res, err = BindResponse(nil, res, http.StatusOK)
 	if err != nil {
 		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)

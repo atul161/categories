@@ -17,6 +17,7 @@ const (
 )
 
 func (app *App) RegisterProductMethods() error {
+	//if store does not exist then it will create a new store
 	_, err := schema.NewStore(schema.Store{DB: app.DB})
 	if err != nil {
 		return err
@@ -27,6 +28,10 @@ func (app *App) RegisterProductMethods() error {
 	app.Router.HandleFunc("/category/product/{id}", app.updateProduct).Methods("PUT")
 	return nil
 }
+
+
+//Create product. ie - category id is compulsory for creating product
+//if there is nested child / variant the this endpoint will create variants also.
 
 func (app *App) createProduct(resp http.ResponseWriter, req *http.Request) {
 	var product *products.ProductResp
@@ -39,7 +44,7 @@ func (app *App) createProduct(resp http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
-	//Category nil check
+	//product nil check
 	if product == nil {
 		resp, err = NewMessage("product must not be empty", http.StatusPreconditionFailed, resp)
 		if err != nil {
@@ -48,6 +53,7 @@ func (app *App) createProduct(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	//category id validation
 	if product.CategoryId == "" {
 		resp, err = NewMessage("category id required for creating product", http.StatusPreconditionFailed, resp)
 		if err != nil {
@@ -55,6 +61,7 @@ func (app *App) createProduct(resp http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
+	//initialising with new id
 	product.Id = helper.New("pro")
 	//Check if category_id exist or not
 	var id string
@@ -84,6 +91,7 @@ func (app *App) createProduct(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	//Bind Response
 	resp, err = BindResponse(product, resp, http.StatusOK)
 	if err != nil {
 		resp, err = NewMessage(err.Error(), http.StatusInternalServerError, resp)
@@ -92,9 +100,13 @@ func (app *App) createProduct(resp http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
+
 }
 
+
+//Get Product - need id in request and it will return product and its variant
 func (app *App) getProduct(res http.ResponseWriter, req *http.Request) {
+	//getting if
 	params := mux.Vars(req)
 	id := params["id"]
 	var err error = nil
@@ -130,6 +142,7 @@ func (app *App) getProduct(res http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
+	//Binding Response
 	res, err = BindResponse(prod, res, http.StatusOK)
 	if err != nil {
 		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)

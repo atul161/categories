@@ -16,6 +16,7 @@ const (
 	Var = "var"
 )
 
+//Register the Variant method
 func (app *App) RegisterVariantsMethods() error {
 	//schema will create the schema if not exists
 	_, err := schema.NewStore(schema.Store{DB: app.DB})
@@ -29,6 +30,7 @@ func (app *App) RegisterVariantsMethods() error {
 	return nil
 }
 
+//Create variant ie : product id is compulsory
 func (app *App) createVariant(resp http.ResponseWriter, req *http.Request) {
 	var variant *vr.Variant
 	//Decoding the request
@@ -96,6 +98,7 @@ func (app *App) createVariant(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
+//get variant
 func (app *App) getVariant(res http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	id := params["id"]
@@ -133,27 +136,7 @@ func (app *App) getVariant(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
-
-func (app *App) deleteVariant(res http.ResponseWriter, req *http.Request) {
-	params := mux.Vars(req)
-	id := params["id"]
-	var err error = nil
-	if id == "" {
-		res, err = NewMessage("id required", http.StatusPreconditionFailed, res)
-		if err != nil {
-			return
-		}
-		return
-	}
-	if err := vr.DeleteVariant(id, app.DB); err != nil {
-		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
-		if err != nil {
-			return
-		}
-		return
-	}
-}
-
+//Update variant
 func (app *App) updateVariant(res http.ResponseWriter, req *http.Request) {
 	log.Println("/category/product/variant")
 	id := mux.Vars(req)["id"]
@@ -214,3 +197,25 @@ func (app *App) updateVariant(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
+//delete variant
+func (app *App) deleteVariant(res http.ResponseWriter, req *http.Request) {
+	params := mux.Vars(req)
+	id := params["id"]
+	var err error = nil
+	if id == "" {
+		res, err = NewMessage("id required", http.StatusPreconditionFailed, res)
+		if err != nil {
+			return
+		}
+		return
+	}
+	if err := vr.DeleteVariant(id, app.DB); err != nil {
+		res, err = NewMessage(err.Error(), http.StatusInternalServerError, res)
+		if err != nil {
+			return
+		}
+		return
+	}
+}
+
+

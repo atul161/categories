@@ -111,6 +111,7 @@ where  id = $2`
 //Get Category
 func GetCategories(id string, Db *sql.DB, flex int) (error, *CategoryResp) {
 
+	//Inner join will all the three tables
 	query := `select coalesce( c1.id , '' ) as category_id , coalesce(c1.child_categories_id , '') , coalesce(c1.name , '') as category_name, coalesce(p1.id , '') as product_id , coalesce(p1.name , '') as product_name , coalesce( p1.description , '') as product_description ,coalesce( p1.image_url , '' ) as product_image_url ,
        coalesce(v1.id , '' ) as variant_id , coalesce(v1.name , '') as variant_name  , coalesce(v1.colour , '') as variant_colour , coalesce(v1.discount_price , 0) as variant_discount_price , coalesce(v1.size, '') as variant_size
 from shopalyst_category_v1.category as
@@ -131,6 +132,7 @@ from shopalyst_category_v1.category as
 		return err, nil
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		var prod product.ProductResp
 		var vari variant.Variant
